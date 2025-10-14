@@ -16,11 +16,33 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.post("/", async (req: Request<{}, {}, Event>, res: Response) => {
-  const { name, dateTime, isPublic } = req.body;
+  const {
+    name,
+    dateTime,
+    isPublic,
+    createdBy,
+    flyer,
+    description,
+    address,
+    placeName,
+    lat,
+    lng,
+  } = req.body;
   try {
     const result = await pool.query(
-      "INSERT INTO events (name, date_time, is_public) VALUES ($1, $2, $3) RETURNING *",
-      [name, dateTime, isPublic]
+      "INSERT INTO events (name, date_time, is_public, created_by, flyer, description, address, place_name, lat, lng) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+      [
+        name,
+        dateTime,
+        isPublic,
+        createdBy,
+        flyer,
+        description,
+        address,
+        placeName,
+        lat,
+        lng,
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -31,8 +53,8 @@ router.post("/", async (req: Request<{}, {}, Event>, res: Response) => {
 
 router
   .route("/:eventId")
-  .get(async (req: Request, res: Response) => {
-    const { eventId } = req.params;
+  .get(async (req: Request<{ eventId: string }>, res: Response) => {
+    const eventId = parseInt(req.params.eventId, 10);
     try {
       const result = await pool.query(
         `SELECT * FROM events WHERE id = ${eventId};`
