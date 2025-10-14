@@ -5,8 +5,14 @@ import { pool } from "../db.js";
 
 const router = Router();
 
-router.get("/", (req: Request, res: Response) => {
-  res.status(200).send("GET all events");
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT * FROM events;");
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.post("/", async (req: Request<{}, {}, Event>, res: Response) => {
@@ -25,8 +31,17 @@ router.post("/", async (req: Request<{}, {}, Event>, res: Response) => {
 
 router
   .route("/:eventId")
-  .get((req: Request, res: Response) => {
-    res.status(200).send("GET single event");
+  .get(async (req: Request, res: Response) => {
+    const { eventId } = req.params;
+    try {
+      const result = await pool.query(
+        `SELECT * FROM events WHERE id = ${eventId};`
+      );
+      res.status(200).json(result.rows[0]);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   })
   .patch((req: Request<{}, {}, Event>, res: Response) => {
     res.status(200).send("PATCH update single event partial");
