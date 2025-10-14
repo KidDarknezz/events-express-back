@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import "dotenv/config";
 
 import Express from "express";
 import eventsRouter from "./routes/events.js";
