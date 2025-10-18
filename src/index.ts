@@ -1,13 +1,19 @@
 import "dotenv/config";
 
 import Express from "express";
+import cors from "cors";
 import eventsRouter from "./routes/events.js";
 
+const PORT = process.env.PORT || 3001;
+
 const app = Express();
+
 app.use(Express.json());
-
-const PORT = process.env.PORT || 3000;
-
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 app.use("/events", eventsRouter);
 
 app.listen(PORT, () => {

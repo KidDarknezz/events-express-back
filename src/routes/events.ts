@@ -3,6 +3,9 @@ import type { Event } from "../types/event.types.js";
 
 import { pool } from "../db.js";
 
+import pkg from "lodash";
+const { snakeCase } = pkg;
+
 const router = Router();
 
 router.get("/", async (req: Request, res: Response) => {
@@ -65,11 +68,46 @@ router
       res.status(500).json({ error: "Internal server error" });
     }
   })
-  .patch((req: Request<{}, {}, Event>, res: Response) => {
-    res.status(200).send("PATCH update single event partial");
+  .patch(async (req: Request<{ eventId: string }>, res: Response) => {
+    const eventId = parseInt(req.params.eventId, 10);
+    let data = req.body;
+    data = toSnakeCase(data);
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: "No fields provided for update" });
+    }
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = fields
+      .map((field, i) => `${field} = $${i + 1}`)
+      .join(", ");
+    const query = `
+      UPDATE events
+      SET ${setClause}
+      WHERE id = $${fields.length + 1}
+      RETURNING *;
+    `;
+    try {
+      const result = await pool.query(query, [...values, eventId]);
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      res.status(200).json(result.rows[0]);
+    } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   })
-  .put((req: Request<{}, {}, Event>, res: Response) => {
+  .put((req: Request<{ eventId: string }>, res: Response) => {
     res.status(200).send("PUT update single event full");
   });
+
+function toSnakeCase(obj: Record<string, any>) {
+  const newObj: Record<string, any> = {};
+  for (const key in obj) {
+    newObj[snakeCase(key)] = obj[key];
+  }
+  return newObj;
+}
 
 export default router;
