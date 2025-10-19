@@ -3,15 +3,16 @@ import type { Event } from "../types/event.types.js";
 
 import { pool } from "../db.js";
 
-import pkg from "lodash";
-const { snakeCase } = pkg;
+import lodash from "lodash";
+const { snakeCase, camelCase } = lodash;
 
 const router = Router();
 
 router.get("/", async (req: Request, res: Response) => {
   try {
     const result = await pool.query("SELECT * FROM events;");
-    res.status(200).json(result.rows);
+    const camelResult = toCamelCase(result.rows);
+    res.status(200).json(camelResult);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -47,7 +48,8 @@ router.post("/", async (req: Request<{}, {}, Event>, res: Response) => {
         lng,
       ]
     );
-    res.status(201).json(result.rows[0]);
+    const camelResult = toCamelCase(result.rows[0]);
+    res.status(201).json(camelResult);
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -62,7 +64,8 @@ router
       const result = await pool.query(
         `SELECT * FROM events WHERE id = ${eventId};`
       );
-      res.status(200).json(result.rows[0]);
+      const camelResult = toCamelCase(result.rows[0]);
+      res.status(200).json(camelResult);
     } catch (error) {
       console.error("Database error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -91,8 +94,8 @@ router
       if (result.rowCount === 0) {
         return res.status(404).json({ error: "Event not found" });
       }
-
-      res.status(200).json(result.rows[0]);
+      const camelResult = toCamelCase(result.rows[0]);
+      res.status(200).json(camelResult);
     } catch (error) {
       console.error("Database error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -108,6 +111,23 @@ function toSnakeCase(obj: Record<string, any>) {
     newObj[snakeCase(key)] = obj[key];
   }
   return newObj;
+}
+
+function toCamelCase<T>(obj: any): T {
+  if (Array.isArray(obj)) {
+    return obj.map(toCamelCase) as any;
+  } else if (isPlainObject(obj)) {
+    return Object.keys(obj).reduce((acc, key) => {
+      const camelKey = camelCase(key);
+      acc[camelKey] = toCamelCase(obj[key]);
+      return acc;
+    }, {} as any) as T;
+  }
+  return obj;
+}
+
+function isPlainObject(obj: any): boolean {
+  return obj !== null && obj.constructor === Object;
 }
 
 export default router;
