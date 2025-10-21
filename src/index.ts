@@ -8,10 +8,15 @@ const PORT = process.env.PORT || 3001;
 
 const app = Express();
 
+const allowedOrigins =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "http://events-nuxt-front.eba-wp3r3irh.us-east-2.elasticbeanstalk.com";
+
 app.use(Express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
   })
 );
 app.use("/events", eventsRouter);
