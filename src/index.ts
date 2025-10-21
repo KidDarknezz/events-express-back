@@ -11,7 +11,7 @@ const app = Express();
 const allowedOrigins =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3000"
-    : "http://events-nuxt-front.eba-wp3r3irh.us-east-2.elasticbeanstalk.com";
+    : "https://main.d3r1enjvg5wce3.amplifyapp.com";
 
 app.use(Express.json());
 app.use(
