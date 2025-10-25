@@ -4,7 +4,7 @@ import Express from "express";
 import cors from "cors";
 import eventsRouter from "./routes/events.js";
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 const app = Express();
 
